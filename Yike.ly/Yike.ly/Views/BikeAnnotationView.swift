@@ -29,8 +29,7 @@ struct BikeAnnotationView: View {
                         .shadow(color: shadowColor.opacity(0.5), radius: 4, y: 2)
                         .overlay(
                             Circle()
-                                .stroke(borderColor, lineWidth: bike.state == .hidden ? 1.5 : 0)
-                                .strokeStyle(StrokeStyle(lineWidth: 1.5, dash: [3]))
+                                .stroke(borderColor, style: StrokeStyle(lineWidth: 1.5, dash: [3]))
                         )
 
                     Image(systemName: bikeIcon)

@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import Combine
 
 // MARK: - Bike State
 enum BikeState: String, CaseIterable {

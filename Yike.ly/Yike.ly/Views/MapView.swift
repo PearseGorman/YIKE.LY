@@ -39,7 +39,6 @@ struct MapView: View {
             .mapStyle(mapStyle.mkStyle)
             .mapControls {
                 MapUserLocationButton()
-                MapCompassButton()
                 MapScaleView()
             }
             .ignoresSafeArea(edges: .bottom)

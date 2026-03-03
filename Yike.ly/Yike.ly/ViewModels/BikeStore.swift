@@ -1,77 +1,96 @@
 import Foundation
 import Combine
 
-// BikeStore acts as the single source of truth for all bike state.
-// When you wire up the MariaDB backend, replace `loadSimulatedData()`
-// with a real network call to your server endpoint.
-
 class BikeStore: ObservableObject {
     @Published var bikes: [Bike] = []
-    @Published var isAdminMode: Bool = false  // toggled via the admin UI
+    @Published var isAdminMode: Bool = false
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String? = nil
+
+    // Flip this to true once your server is running
+    static let useRealAPI = false
 
     init() {
-        loadSimulatedData()
+        Task { await loadBikes() }
     }
 
-    // MARK: - Data Loading
+    // MARK: - Load
 
-    /// Loads hardcoded simulated bikes. Swap this out for a real API call later.
-    func loadSimulatedData() {
-        bikes = Bike.simulatedBikes
-    }
+    @MainActor
+    func loadBikes() async {
+        isLoading = true
+        errorMessage = nil
 
-    /// Simulates refreshing GPS coordinates from the server.
-    /// In production: GET /api/bikes → decode JSON → update bikes array.
-    func refreshCoordinates() {
-        // TODO: Replace with URLSession call to your MariaDB-backed REST API
-        // Example:
-        //   URLSession.shared.dataTask(with: URL(string: "http://yourserver/api/bikes")!) { data, _, _ in
-        //       guard let data = data else { return }
-        //       let decoded = try? JSONDecoder().decode([BikeDTO].self, from: data)
-        //       DispatchQueue.main.async { self.bikes = decoded.map { Bike($0) } }
-        //   }.resume()
-        print("Refresh triggered — plug in your API call here.")
+        if BikeStore.useRealAPI {
+            do {
+                let dtos = try await NetworkManager.shared.fetchBikes()
+                self.bikes = dtos.map { Bike(from: $0) }
+            } catch {
+                self.errorMessage = error.localizedDescription
+                self.bikes = Bike.simulatedBikes // fallback gracefully
+            }
+        } else {
+            self.bikes = Bike.simulatedBikes
+        }
+
+        isLoading = false
     }
 
     // MARK: - User Actions
 
-    /// User reports a bike as needing repair with a described issue.
     func reportBike(_ bike: Bike, issue: String) {
-        if let index = bikes.firstIndex(where: { $0.id == bike.id }) {
-            bikes[index].state = .needsRepair
-            bikes[index].reportedIssue = issue
-            bikes[index].lastUpdated = Date()
+        updateLocal(bike.id) {
+            $0.state = .needsRepair
+            $0.reportedIssue = issue
+            $0.lastUpdated = Date()
+        }
+        if BikeStore.useRealAPI {
+            Task {
+                try? await NetworkManager.shared.reportBike(id: bike.id, issue: issue)
+            }
         }
     }
 
     // MARK: - Admin Actions
 
-    /// Admin toggles a bike's visibility (e.g. pulled into the shop).
     func toggleAdminHidden(_ bike: Bike) {
-        if let index = bikes.firstIndex(where: { $0.id == bike.id }) {
-            bikes[index].state = bikes[index].state == .hidden ? .available : .hidden
-            bikes[index].lastUpdated = Date()
+        let newState: BikeState = bike.state == .hidden ? .available : .hidden
+        updateLocal(bike.id) {
+            $0.state = newState
+            $0.lastUpdated = Date()
+        }
+        if BikeStore.useRealAPI {
+            Task {
+                try? await NetworkManager.shared.updateBikeState(id: bike.id, state: newState.rawValue)
+            }
         }
     }
 
-    /// Admin marks a repaired bike back to available.
     func markAsRepaired(_ bike: Bike) {
-        if let index = bikes.firstIndex(where: { $0.id == bike.id }) {
-            bikes[index].state = .available
-            bikes[index].reportedIssue = nil
-            bikes[index].lastUpdated = Date()
+        updateLocal(bike.id) {
+            $0.state = .available
+            $0.reportedIssue = nil
+            $0.lastUpdated = Date()
+        }
+        if BikeStore.useRealAPI {
+            Task {
+                try? await NetworkManager.shared.updateBikeState(id: bike.id, state: "available")
+            }
         }
     }
 
-    // MARK: - Computed helpers
+    // MARK: - Computed
 
-    /// Bikes visible to regular users (available + needsRepair only)
     var visibleBikes: [Bike] {
         bikes.filter { $0.state != .hidden }
     }
 
-    /// All bikes including hidden — for admin view
-    var allBikes: [Bike] {
-        bikes
+    var allBikes: [Bike] { bikes }
+
+    // MARK: - Private helper
+    private func updateLocal(_ id: String, update: (Bike) -> Void) {
+        if let index = bikes.firstIndex(where: { $0.id == id }) {
+            update(bikes[index])
+        }
     }
 }

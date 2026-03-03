@@ -42,6 +42,21 @@ class Bike: Identifiable, ObservableObject {
     }
 }
 
+// MARK: - Convenience init from network DTO
+extension Bike {
+    convenience init(from dto: BikeDTO) {
+        let state: BikeState
+        switch dto.state {
+        case "needsRepair": state = .needsRepair
+        case "hidden":      state = .hidden
+        default:            state = .available
+        }
+        self.init(id: dto.id, name: dto.name, state: state,
+                  latitude: dto.latitude, longitude: dto.longitude)
+        self.reportedIssue = dto.reportedIssue
+    }
+}
+
 // MARK: - Simulated Campus Bike Data
 // Coordinates are approximate locations around Eckerd College, St. Petersburg, FL
 // Replace with real GPS data once your MariaDB + tracker pipeline is live.

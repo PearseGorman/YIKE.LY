@@ -78,33 +78,50 @@ struct AdminBikeRow: View {
 
             Spacer()
 
-            // Action menu
-            Menu {
-                // Mark repaired
+            // Action buttons — explicit for each state so there's no ambiguity
+            HStack(spacing: 8) {
+
+                // Mark Repaired — only shown when broken
                 if bike.state == .needsRepair {
                     Button {
                         store.markAsRepaired(bike)
                     } label: {
-                        Label("Mark as Repaired", systemImage: "checkmark.circle")
+                        Label("Fixed", systemImage: "checkmark.circle.fill")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color.green.opacity(0.15))
+                            .foregroundColor(.green)
+                            .cornerRadius(8)
                     }
                 }
 
-                // Toggle shop visibility
+                // Send to Shop / Return to Fleet toggle
                 Button {
                     store.toggleAdminHidden(bike)
                 } label: {
                     if bike.state == .hidden {
-                        Label("Return to Fleet", systemImage: "eye")
+                        Label("Return", systemImage: "eye.fill")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color.blue.opacity(0.15))
+                            .foregroundColor(.blue)
+                            .cornerRadius(8)
                     } else {
-                        Label("Send to Shop", systemImage: "eye.slash")
+                        Label("To Shop", systemImage: "eye.slash.fill")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color.orange.opacity(0.15))
+                            .foregroundColor(.orange)
+                            .cornerRadius(8)
                     }
                 }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .foregroundColor(.secondary)
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
+        .opacity(bike.state == .hidden ? 0.6 : 1.0)
     }
 
     private var stateColor: Color {

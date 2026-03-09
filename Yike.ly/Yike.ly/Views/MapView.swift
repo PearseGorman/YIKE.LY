@@ -52,7 +52,7 @@ struct MapView: View {
         }
         // MARK: Report / Detail Sheet
         .sheet(item: $selectedBike) { bike in
-            BikeDetailSheet(bike: bike, store: store)
+            BikeDetailSheet(bike: bike, store: store, isAdminMode: store.isAdminMode)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }

@@ -1,26 +1,67 @@
 import SwiftUI
 
-/// Admin panel — accessible via the wrench icon in the top bar.
-/// Allows toggling admin mode and managing bike states.
-///
-/// In a real deployment, this would be gated behind @eckerd.edu
-/// authentication. For now it's freely accessible for development.
 struct AdminView: View {
     @ObservedObject var store: BikeStore
+    @ObservedObject var session: UserSession
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             List {
 
-                // MARK: Admin Mode Toggle
-                Section {
-                    Toggle(isOn: $store.isAdminMode) {
-                        Label("Admin Mode", systemImage: "wrench.fill")
+                // MARK: Session Info
+                Section("Signed in as") {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.orange.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "person.fill")
+                                .foregroundColor(.orange)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(session.email)
+                                .font(.subheadline.bold())
+                            Text(session.isAdmin ? "Bike Shop Staff" : "Student")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
-                    .tint(.orange)
+                    .padding(.vertical, 4)
+
+                    Button(role: .destructive) {
+                        dismiss()
+                        session.logout()
+                    } label: {
+                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                }
+
+                // MARK: Admin Mode Toggle
+                // Locked ON for bike shop staff — they cannot disable it.
+                // Shown as a toggle only so the state is visible; disabled if admin.
+                Section {
+                    if session.isAdmin {
+                        HStack {
+                            Label("Admin Mode", systemImage: "wrench.fill")
+                            Spacer()
+                            Text("Always on")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Image(systemName: "lock.fill")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        Toggle(isOn: $store.isAdminMode) {
+                            Label("Admin Mode", systemImage: "wrench.fill")
+                        }
+                        .tint(.orange)
+                    }
                 } footer: {
-                    Text("When enabled, hidden bikes (in shop) appear on the map as gray icons.")
+                    Text(session.isAdmin
+                         ? "Admin mode is permanently enabled for Bike Shop staff."
+                         : "When enabled, hidden bikes appear on the map as gray icons.")
                 }
 
                 // MARK: All Bikes Management
@@ -56,7 +97,6 @@ struct AdminBikeRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // State indicator dot
             Circle()
                 .fill(stateColor)
                 .frame(width: 10, height: 10)
@@ -78,10 +118,7 @@ struct AdminBikeRow: View {
 
             Spacer()
 
-            // Action buttons — explicit for each state so there's no ambiguity
             HStack(spacing: 8) {
-
-                // Mark Repaired — only shown when broken
                 if bike.state == .needsRepair {
                     Button {
                         store.markAsRepaired(bike)
@@ -96,7 +133,6 @@ struct AdminBikeRow: View {
                     }
                 }
 
-                // Send to Shop / Return to Fleet toggle
                 Button {
                     store.toggleAdminHidden(bike)
                 } label: {
@@ -150,16 +186,13 @@ struct StatRow: View {
     var body: some View {
         HStack {
             Circle().fill(color).frame(width: 10, height: 10)
-            Text(label)
-                .font(.subheadline)
+            Text(label).font(.subheadline)
             Spacer()
-            Text("\(value)")
-                .font(.subheadline.bold())
-                .foregroundColor(.secondary)
+            Text("\(value)").font(.subheadline.bold()).foregroundColor(.secondary)
         }
     }
 }
 
 #Preview {
-    AdminView(store: BikeStore())
+    AdminView(store: BikeStore(), session: UserSession())
 }

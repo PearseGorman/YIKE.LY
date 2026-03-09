@@ -3,6 +3,8 @@ import MapKit
 
 struct MapView: View {
     @StateObject private var store = BikeStore()
+    @EnvironmentObject var session: UserSession
+
     @State private var selectedBike: Bike? = nil
     @State private var showReportSheet = false
     @State private var showAdminSheet = false
@@ -21,10 +23,8 @@ struct MapView: View {
 
             // MARK: Map
             Map(position: $cameraPosition) {
-                // User location puck
                 UserAnnotation()
 
-                // Bike annotations
                 let displayBikes = store.isAdminMode ? store.allBikes : store.visibleBikes
                 ForEach(displayBikes) { bike in
                     Annotation(bike.name, coordinate: bike.coordinate) {
@@ -43,22 +43,28 @@ struct MapView: View {
             }
             .ignoresSafeArea(edges: .bottom)
 
-            // MARK: Top Bar
+            // MARK: Top Bar + Bottom Bar
             VStack(spacing: 0) {
                 topBar
                 Spacer()
                 bottomBar
             }
         }
-        // MARK: Report / Detail Sheet
+        // Sync admin mode with session role on appear
+        .onAppear {
+            if session.isAdmin {
+                store.isAdminMode = true
+            }
+        }
+        // MARK: Bike Detail Sheet
         .sheet(item: $selectedBike) { bike in
             BikeDetailSheet(bike: bike, store: store, isAdminMode: store.isAdminMode)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
-        // MARK: Admin Sheet
+        // MARK: Admin Panel Sheet — only reachable for admins
         .sheet(isPresented: $showAdminSheet) {
-            AdminView(store: store)
+            AdminView(store: store, session: session)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
@@ -67,12 +73,12 @@ struct MapView: View {
     // MARK: - Top Bar
     private var topBar: some View {
         HStack {
-            // App title
+            // App title + logged-in user
             VStack(alignment: .leading, spacing: 2) {
                 Text("YIKE.LY")
                     .font(.system(size: 22, weight: .black, design: .rounded))
                     .foregroundColor(.primary)
-                Text("Eckerd College Yellow Bikes")
+                Text("Hi, \(session.displayName)")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
@@ -94,17 +100,18 @@ struct MapView: View {
                     .background(.ultraThinMaterial, in: Circle())
             }
 
-            // Admin button
-            Button {
-                showAdminSheet = true
-            } label: {
-                Image(systemName: store.isAdminMode ? "wrench.fill" : "wrench")
-                    .padding(10)
-                    .background(store.isAdminMode ? Color.orange.opacity(0.2) : Color(.systemBackground).opacity(0.8),
-                                in: Circle())
-                    .overlay(Circle().stroke(store.isAdminMode ? Color.orange : Color.clear, lineWidth: 1.5))
+            // Admin button — only visible to admins
+            if session.isAdmin {
+                Button {
+                    showAdminSheet = true
+                } label: {
+                    Image(systemName: "wrench.fill")
+                        .padding(10)
+                        .background(Color.orange.opacity(0.2), in: Circle())
+                        .overlay(Circle().stroke(Color.orange, lineWidth: 1.5))
+                }
+                .tint(.orange)
             }
-            .tint(store.isAdminMode ? .orange : .primary)
         }
         .padding(.horizontal, 16)
         .padding(.top, 56)
@@ -121,7 +128,6 @@ struct MapView: View {
                 LegendItem(color: .gray, label: "In Shop")
             }
             Spacer()
-            // Bike counts
             Text("\(store.visibleBikes.filter { $0.state == .available }.count) available")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -181,4 +187,5 @@ struct LegendItem: View {
 
 #Preview {
     MapView()
+        .environmentObject(UserSession())
 }

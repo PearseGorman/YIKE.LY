@@ -30,6 +30,7 @@ class AuthManager {
         "bikeshop@eckerd.edu",
         // Add your and your partner's emails here during development:
         // "yourname@eckerd.edu",
+        "cjvogt@eckerd.edu"
     ]
 
     // MARK: - Validate & resolve role

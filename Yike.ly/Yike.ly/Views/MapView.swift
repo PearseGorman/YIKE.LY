@@ -13,8 +13,8 @@ struct MapView: View {
     // Eckerd College campus center
     @State private var cameraPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 27.7308, longitude: -82.7138),
-            span: MKCoordinateSpan(latitudeDelta: 0.012, longitudeDelta: 0.012)
+            center: CLLocationCoordinate2D(latitude: 27.7151, longitude: -82.6866),
+            span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015)
         )
     )
 

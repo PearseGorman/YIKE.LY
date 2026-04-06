@@ -1,0 +1,17 @@
+.DS_Store
+*.swp
+UserData/
+xcuserdata/
+DerivedData/# macOS junk
+.DS_Store
+*.swp
+
+# Xcode junk (personal settings that shouldn't be shared)
+build/
+DerivedData/
+*.moved-aside
+*.xcuserstate
+xcuserdata/
+
+# If you ever use CocoaPods later
+Pods/

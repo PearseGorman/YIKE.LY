@@ -2,15 +2,18 @@ import SwiftUI
 
 /// Bottom sheet shown when a user taps a bike on the map.
 /// Displays bike info and allows reporting an issue.
+/// In admin mode, hidden bikes show a "Return to Fleet" prompt instead.
 struct BikeDetailSheet: View {
     let bike: Bike
     @ObservedObject var store: BikeStore
+    let isAdminMode: Bool                   // ← passed in from MapView
     @Environment(\.dismiss) private var dismiss
 
     @State private var showReportForm = false
     @State private var selectedIssue: BikeIssue? = nil
     @State private var customNote: String = ""
     @State private var didSubmit = false
+    @State private var didReturnToFleet = false
 
     var body: some View {
         NavigationStack {
@@ -22,7 +25,7 @@ struct BikeDetailSheet: View {
                         Circle()
                             .fill(stateColor.opacity(0.15))
                             .frame(width: 56, height: 56)
-                        Image(systemName: "bicycle")
+                        Image(systemName: bike.state == .hidden ? "wrench.and.screwdriver" : "bicycle")
                             .font(.system(size: 26))
                             .foregroundColor(stateColor)
                     }
@@ -69,38 +72,37 @@ struct BikeDetailSheet: View {
                     Divider()
                 }
 
-                // MARK: Report Form or Prompt
+                // MARK: Content — branches by state + role
                 if didSubmit {
-                    // Confirmation
-                    VStack(spacing: 12) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 48))
-                            .foregroundColor(.green)
-                        Text("Report submitted!")
-                            .font(.title3.bold())
-                        Text("The Bike Shop has been notified.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Button("Done") { dismiss() }
-                            .buttonStyle(.borderedProminent)
-                            .padding(.top, 8)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
-
+                    confirmationView(
+                        icon: "checkmark.seal.fill",
+                        color: .green,
+                        title: "Report submitted!",
+                        subtitle: "The Bike Shop has been notified."
+                    )
+                } else if didReturnToFleet {
+                    confirmationView(
+                        icon: "bicycle.circle.fill",
+                        color: .blue,
+                        title: "Returned to fleet!",
+                        subtitle: "\(bike.name) is now visible to students."
+                    )
                 } else if showReportForm {
                     reportForm
                 } else {
-                    reportPrompt
+                    actionPrompt
                 }
             }
         }
     }
 
-    // MARK: - Report Prompt (initial state)
-    private var reportPrompt: some View {
+    // MARK: - Action Prompt
+    // Branches on bike state and whether the viewer is an admin.
+    private var actionPrompt: some View {
         VStack(spacing: 16) {
-            if bike.state == .available {
+            switch bike.state {
+
+            case .available:
                 Text("Is something wrong with this Yike?")
                     .font(.headline)
                     .multilineTextAlignment(.center)
@@ -118,7 +120,7 @@ struct BikeDetailSheet: View {
                 }
                 .padding(.horizontal)
 
-            } else if bike.state == .needsRepair {
+            case .needsRepair:
                 Text("This Yike has already been reported.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -128,6 +130,39 @@ struct BikeDetailSheet: View {
                 Text("The Bike Shop will address it soon.")
                     .font(.caption)
                     .foregroundColor(.secondary)
+
+            case .hidden:
+                // Only reachable in admin mode (hidden bikes are invisible to regular users)
+                VStack(spacing: 8) {
+                    Image(systemName: "wrench.and.screwdriver.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(.gray)
+                        .padding(.top, 24)
+
+                    Text("This Yike is currently in the shop.")
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+
+                    Text("It is not visible to students on the map.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal)
+
+                if isAdminMode {
+                    Button {
+                        returnToFleet()
+                    } label: {
+                        Label("Return to Fleet", systemImage: "eye.fill")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue.opacity(0.1))
+                            .foregroundColor(.blue)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                }
             }
 
             Spacer()
@@ -142,7 +177,6 @@ struct BikeDetailSheet: View {
                     .font(.headline)
                     .padding(.top, 8)
 
-                // Issue selection
                 ForEach(BikeIssue.allCases) { issue in
                     Button {
                         selectedIssue = issue
@@ -166,7 +200,6 @@ struct BikeDetailSheet: View {
                     }
                 }
 
-                // Optional notes
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Additional details (optional)")
                         .font(.subheadline)
@@ -178,7 +211,6 @@ struct BikeDetailSheet: View {
                         .cornerRadius(10)
                 }
 
-                // Submit
                 Button {
                     submitReport()
                 } label: {
@@ -197,13 +229,37 @@ struct BikeDetailSheet: View {
         }
     }
 
-    // MARK: - Submit
+    // MARK: - Confirmation View (reusable for both report + return actions)
+    private func confirmationView(icon: String, color: Color, title: String, subtitle: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 48))
+                .foregroundColor(color)
+            Text(title)
+                .font(.title3.bold())
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            Button("Done") { dismiss() }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+
+    // MARK: - Actions
     private func submitReport() {
         let issueText = [selectedIssue?.rawValue, customNote.isEmpty ? nil : customNote]
             .compactMap { $0 }
             .joined(separator: " — ")
         store.reportBike(bike, issue: issueText)
         withAnimation { didSubmit = true }
+    }
+
+    private func returnToFleet() {
+        store.toggleAdminHidden(bike)
+        withAnimation { didReturnToFleet = true }
     }
 
     // MARK: - Style Helpers

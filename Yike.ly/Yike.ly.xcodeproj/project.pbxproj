@@ -11,6 +11,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		36CBC39E2F736BEF00390FE8 /* Models */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Models;
+			sourceTree = "<group>";
+		};
 		36FA34DA2F4BF0C000CC5A97 /* Yike.ly */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Yike.ly;
@@ -34,6 +39,7 @@
 			children = (
 				36FA34DA2F4BF0C000CC5A97 /* Yike.ly */,
 				36FA34D92F4BF0C000CC5A97 /* Products */,
+				36CBC39E2F736BEF00390FE8 /* Models */,
 			);
 			sourceTree = "<group>";
 		};
@@ -61,6 +67,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				36CBC39E2F736BEF00390FE8 /* Models */,
 				36FA34DA2F4BF0C000CC5A97 /* Yike.ly */,
 			);
 			name = Yike.ly;

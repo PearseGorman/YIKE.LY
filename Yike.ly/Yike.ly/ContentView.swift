@@ -1,19 +1,22 @@
-//
-//  ContentView.swift
-//  Yike.ly
-//
-//  Created by  on 2/22/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var session = UserSession()
+
     var body: some View {
-        MapView()
+        Group {
+            if session.isLoggedIn {
+                MapView()
+                    .environmentObject(session)
+            } else {
+                LoginView()
+                    .environmentObject(session)
+            }
+        }
+        .animation(.easeInOut, value: session.isLoggedIn)
     }
 }
 
 #Preview {
     ContentView()
 }
-

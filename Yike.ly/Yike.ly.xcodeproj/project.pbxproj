@@ -10,6 +10,16 @@
 		36FA34D82F4BF0C000CC5A97 /* Yike.ly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Yike.ly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		36B5AD732F8DC88F00EA2273 /* Exceptions for "Yike.ly" folder in "Yike.ly" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Yike-ly-Info.plist",
+			);
+			target = 36FA34D72F4BF0C000CC5A97 /* Yike.ly */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		36CBC39E2F736BEF00390FE8 /* Models */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -18,6 +28,9 @@
 		};
 		36FA34DA2F4BF0C000CC5A97 /* Yike.ly */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				36B5AD732F8DC88F00EA2273 /* Exceptions for "Yike.ly" folder in "Yike.ly" target */,
+			);
 			path = Yike.ly;
 			sourceTree = "<group>";
 		};
@@ -260,6 +273,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Yike-ly-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -291,6 +305,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Yike-ly-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

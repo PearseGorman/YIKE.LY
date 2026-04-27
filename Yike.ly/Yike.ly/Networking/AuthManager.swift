@@ -28,9 +28,8 @@ class AuthManager {
     // Format: lowercase full eckerd email addresses of bike shop staff.
     private let localAdminEmails: Set<String> = [
         "bikeshop@eckerd.edu",
-        // Add your and your partner's emails here during development:
-        // "yourname@eckerd.edu",
-        "cjvogt@eckerd.edu"
+        "cjvogt@eckerd.edu",      // ← your email
+        "pmgorman@eckerd.edu",    // ← partner's email
     ]
 
     // MARK: - Validate & resolve role
@@ -45,7 +44,7 @@ class AuthManager {
         guard trimmed.hasSuffix("@eckerd.edu") else { throw AuthError.notEckerdEmail }
 
         // --- Swap this block out for your real API call ---
-        if BikeStore.useRealAPI {
+        if BikeStore.useRealAPI && false { // TODO: re-enable when users table exists on server
             return try await fetchRoleFromServer(email: trimmed)
         } else {
             return localAdminEmails.contains(trimmed) ? .admin : .user

@@ -13,12 +13,29 @@ struct MapView: View {
     // Eckerd College campus center
     @State private var cameraPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 27.7151, longitude: -82.6866),
-            span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015)
+            center: CLLocationCoordinate2D(latitude: 27.7308, longitude: -82.7138),
+            span: MKCoordinateSpan(latitudeDelta: 0.012, longitudeDelta: 0.012)
         )
     )
 
     var body: some View {
+        Group {
+            if let error = store.errorMessage {
+                // MARK: Error screen
+                ServerErrorView(message: error) {
+                    Task { await store.loadBikes() }
+                }
+            } else if store.isLoading {
+                // MARK: Loading screen
+                ProgressView("Loading Yikes...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                mainMap
+            }
+        }
+    }
+
+    private var mainMap: some View {
         ZStack(alignment: .top) {
 
             // MARK: Map
@@ -68,7 +85,7 @@ struct MapView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
-    }
+    }   // end mainMap
 
     // MARK: - Top Bar
     private var topBar: some View {

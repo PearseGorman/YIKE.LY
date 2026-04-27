@@ -2,51 +2,85 @@ import Foundation
 import Combine
 internal import _LocationEssentials
 
+
+
 class BikeStore: ObservableObject {
     @Published var bikes: [Bike] = []
     @Published var isAdminMode: Bool = false
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
 
-    static let useRealAPI = true   // ← live — partner's server is up
+    static let useRealAPI = true
+    static let pollInterval: TimeInterval = 30
+
+    private var pollTask: Task<Void, Never>? = nil
 
     init() {
         Task { await loadBikes() }
     }
 
     // MARK: - Load
+    // Starts with an empty array and populates entirely from the DB.
+    // Falls back to an error state if the server is unreachable.
     @MainActor
     func loadBikes() async {
         isLoading = true
         errorMessage = nil
-
-        // Always start from the simulated base (names, states, IDs)
-        // then overwrite coordinates with live data if the server is reachable.
-        bikes = Bike.simulatedBikes
+        bikes = []
 
         if BikeStore.useRealAPI {
-            await refreshCoordinates()
+            do {
+                let dtos = try await NetworkManager.shared.fetchAllBikes()
+                bikes = dtos.compactMap { Bike(from: $0) }
+                startPolling()
+            } catch {
+                errorMessage = "Could not reach the Yike.ly server. Please check your connection and try again."
+            }
+        } else {
+            bikes = Bike.simulatedBikes
         }
 
         isLoading = false
     }
 
-    // MARK: - Refresh coordinates from PHP server
-    // Fetches live lat/lon for each bike and merges into the existing bike list.
-    // State, name, and reported issues are managed locally until the PHP backend
-    // grows to return full bike objects.
-    @MainActor
-    func refreshCoordinates() async {
-        let locations = await NetworkManager.shared.fetchAllCoordinates()
-
-        for (numericId, location) in locations {
-            // Bike IDs are "YK-01" ... "YK-12"; numeric IDs are 1...12
-            let paddedId = String(format: "YK-%02d", numericId)
-            if let index = bikes.firstIndex(where: { $0.id == paddedId }) {
-                bikes[index].coordinate.latitude  = location.latitude
-                bikes[index].coordinate.longitude = location.longitude
+    // MARK: - Polling
+    func startPolling() {
+        stopPolling()
+        pollTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: UInt64(BikeStore.pollInterval * 1_000_000_000))
+                guard !Task.isCancelled else { break }
+                await refreshBikes()
             }
         }
+    }
+
+    func stopPolling() {
+        pollTask?.cancel()
+        pollTask = nil
+    }
+
+    deinit { stopPolling() }
+
+    // MARK: - Refresh
+    // Re-fetches all bike data from the DB and replaces the array,
+    // preserving any local state changes (admin hidden, reported issues)
+    // that haven't been synced to the server yet.
+    @MainActor
+    func refreshBikes() async {
+        guard let dtos = try? await NetworkManager.shared.fetchAllBikes() else { return }
+
+        var updated = bikes
+        for dto in dtos {
+            let paddedId = String(format: "YK-%02d", Int(dto.bike_id) ?? 0)
+            if let index = updated.firstIndex(where: { $0.id == paddedId }) {
+                // Only update coordinates — preserve local state until
+                // server-side state management is fully wired up
+                updated[index].coordinate.latitude  = Double(dto.latitude)  ?? updated[index].coordinate.latitude
+                updated[index].coordinate.longitude = Double(dto.longitude) ?? updated[index].coordinate.longitude
+            }
+        }
+        bikes = updated  // reassign to trigger @Published
     }
 
     // MARK: - User Actions

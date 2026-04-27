@@ -43,16 +43,27 @@ class Bike: Identifiable, ObservableObject {
 }
 
 // MARK: - Convenience init from network DTO
+// bike_id from PHP is a numeric string (e.g. "1") — mapped to "YK-01" format.
+// latitude/longitude also come back as strings from PHP — parsed to Double.
 extension Bike {
-    convenience init(from dto: BikeDTO) {
+    convenience init?(from dto: BikeDTO) {
+        guard
+            let numericId = Int(dto.bike_id),
+            let lat       = Double(dto.latitude),
+            let lon       = Double(dto.longitude)
+        else { return nil }
+
+        let paddedId = String(format: "YK-%02d", numericId)
+
         let state: BikeState
         switch dto.state {
         case "needsRepair": state = .needsRepair
         case "hidden":      state = .hidden
         default:            state = .available
         }
-        self.init(id: dto.id, name: dto.name, state: state,
-                  latitude: dto.latitude, longitude: dto.longitude)
+
+        self.init(id: paddedId, name: dto.name, state: state,
+                  latitude: lat, longitude: lon)
         self.reportedIssue = dto.reportedIssue
     }
 }
@@ -62,17 +73,17 @@ extension Bike {
 // Replace with real GPS data once your MariaDB + tracker pipeline is live.
 extension Bike {
     static let simulatedBikes: [Bike] = [
-        Bike(id: "YK-01", name: "Yike #1",  state: .available,   latitude: 27.7155, longitude: -82.6892),
-        Bike(id: "YK-02", name: "Yike #2",  state: .available,   latitude: 27.7160, longitude: -82.6900),
-        Bike(id: "YK-03", name: "Yike #3",  state: .available,   latitude: 27.7133, longitude: -82.6918),
-        Bike(id: "YK-04", name: "Yike #4",  state: .needsRepair, latitude: 27.7112, longitude: -82.6895),
-        Bike(id: "YK-05", name: "Yike #5",  state: .available,   latitude: 27.7123, longitude: -82.6884),
-        Bike(id: "YK-06", name: "Yike #6",  state: .available,   latitude: 27.7133, longitude: -82.6871),
-        Bike(id: "YK-07", name: "Yike #7",  state: .needsRepair, latitude: 27.7144, longitude: -82.6869),
-        Bike(id: "YK-08", name: "Yike #8",  state: .hidden,      latitude: 27.7181, longitude: -82.6898), // In shop
-        Bike(id: "YK-09", name: "Yike #9",  state: .available,   latitude: 27.7178, longitude: -82.6885),
-        Bike(id: "YK-10", name: "Yike #10", state: .available,   latitude: 27.7170, longitude: -82.6885),
-        Bike(id: "YK-11", name: "Yike #11", state: .hidden,      latitude: 27.7149, longitude: -82.6820), // In shop
-        Bike(id: "YK-12", name: "Yike #12", state: .available,   latitude: 27.7124, longitude: -82.6859),
+        Bike(id: "YK-01", name: "Yike #1",  state: .available,   latitude: 27.7299, longitude: -82.7143),
+        Bike(id: "YK-02", name: "Yike #2",  state: .available,   latitude: 27.7312, longitude: -82.7158),
+        Bike(id: "YK-03", name: "Yike #3",  state: .available,   latitude: 27.7325, longitude: -82.7130),
+        Bike(id: "YK-04", name: "Yike #4",  state: .needsRepair, latitude: 27.7287, longitude: -82.7165),
+        Bike(id: "YK-05", name: "Yike #5",  state: .available,   latitude: 27.7341, longitude: -82.7112),
+        Bike(id: "YK-06", name: "Yike #6",  state: .available,   latitude: 27.7278, longitude: -82.7148),
+        Bike(id: "YK-07", name: "Yike #7",  state: .needsRepair, latitude: 27.7310, longitude: -82.7175),
+        Bike(id: "YK-08", name: "Yike #8",  state: .hidden,      latitude: 27.7295, longitude: -82.7120), // In shop
+        Bike(id: "YK-09", name: "Yike #9",  state: .available,   latitude: 27.7332, longitude: -82.7095),
+        Bike(id: "YK-10", name: "Yike #10", state: .available,   latitude: 27.7268, longitude: -82.7136),
+        Bike(id: "YK-11", name: "Yike #11", state: .hidden,      latitude: 27.7295, longitude: -82.7121), // In shop
+        Bike(id: "YK-12", name: "Yike #12", state: .available,   latitude: 27.7355, longitude: -82.7088),
     ]
 }

@@ -2,8 +2,8 @@ import Foundation
 
 // MARK: - Server Configuration
 enum APIConfig {
-    static let baseURL    = "http://51.79.65.180"   // ← your partner's server
-    static let bikeCount  = 12                       // ← update if fleet size changes
+    static let baseURL   = "http://51.79.65.180"
+    static let bikeCount = 12
 }
 
 // MARK: - API Errors
@@ -25,32 +25,16 @@ enum APIError: LocalizedError {
     }
 }
 
-// MARK: - BikeLocation
-// Matches your partner's PHP endpoint response exactly.
-// { "latitude": 27.7299, "longitude": -82.7143, "timestamp": "..." }
-struct BikeLocation: Codable {
-    let latitude:  Double
-    let longitude: Double
-    let timestamp: String
-}
-
 // MARK: - BikeDTO
-// Used for future full-bike endpoints (state, name, reported_issue etc.)
-// when the PHP backend expands to return complete bike objects.
+// Matches get_all_bikes.php response exactly.
+// bike_id comes back as a String from PHP even though it's an Int in the DB.
 struct BikeDTO: Codable {
-    let id:            String
+    let bike_id:       String
     let name:          String
-    let latitude:      Double
-    let longitude:     Double
+    let latitude:      String   // PHP returns doubles as strings
+    let longitude:     String
     let state:         String
     let reportedIssue: String?
-    let lastUpdated:   String?
-
-    enum CodingKeys: String, CodingKey {
-        case id, name, latitude, longitude, state
-        case reportedIssue = "reported_issue"
-        case lastUpdated   = "last_updated"
-    }
 }
 
 // MARK: - ReportPayload
@@ -72,38 +56,15 @@ class NetworkManager {
     private let session = URLSession.shared
     private let decoder = JSONDecoder()
 
-    // MARK: Fetch coordinates for all bikes
-    // Calls your partner's PHP endpoint once per bike ID in parallel,
-    // returns a dictionary of [numericID: BikeLocation] for BikeStore to merge.
-    // When the PHP backend grows to return a full bike list in one call,
-    // replace this method with a single fetchBikes() → [BikeDTO] call.
-    func fetchAllCoordinates() async -> [Int: BikeLocation] {
-        await withTaskGroup(of: (Int, BikeLocation)?.self) { group in
-            for bikeId in 1...APIConfig.bikeCount {
-                group.addTask {
-                    guard let location = try? await self.fetchCoordinate(for: bikeId)
-                    else { return nil }
-                    return (bikeId, location)
-                }
-            }
-            var results: [Int: BikeLocation] = [:]
-            for await result in group {
-                if let (id, location) = result {
-                    results[id] = location
-                }
-            }
-            return results
-        }
-    }
-
-    // MARK: GET /get_bike_location.php?bike_id=N
-    private func fetchCoordinate(for bikeId: Int) async throws -> BikeLocation {
-        guard let url = URL(string: "\(APIConfig.baseURL)/get_bike_location.php?bike_id=\(bikeId)")
+    // MARK: GET /get_all_bikes.php
+    // Returns all bikes with full data — replaces per-bike coordinate fetching.
+    func fetchAllBikes() async throws -> [BikeDTO] {
+        guard let url = URL(string: "\(APIConfig.baseURL)/get_all_bikes.php")
         else { throw APIError.invalidURL }
 
         let (data, response) = try await session.data(from: url)
         try validateResponse(response)
-        return try decoder.decode(BikeLocation.self, from: data)
+        return try decoder.decode([BikeDTO].self, from: data)
     }
 
     // MARK: POST /api/bikes/:id/report

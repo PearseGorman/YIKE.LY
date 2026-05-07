@@ -1,3 +1,6 @@
+
+
+
 import SwiftUI
 
 struct ServerErrorView: View {

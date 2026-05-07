@@ -1,3 +1,9 @@
+//
+//    Main map screen. Renders bike annotations via
+//    MapKit. Supports Standard, Satellite, and Hybrid
+//    map layers. Shows loading and error states.
+//
+
 import SwiftUI
 import MapKit
 

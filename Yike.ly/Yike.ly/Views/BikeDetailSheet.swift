@@ -1,8 +1,12 @@
+//
+//    Bottom sheet shown when a bike pin is tapped.
+//    Students can report issues with a dropdown of
+//    common problems. Admins see a Return to Fleet
+//    option for hidden bikes.
+//
+
 import SwiftUI
 
-/// Bottom sheet shown when a user taps a bike on the map.
-/// Displays bike info and allows reporting an issue.
-/// In admin mode, hidden bikes show a "Return to Fleet" prompt instead.
 struct BikeDetailSheet: View {
     let bike: Bike
     @ObservedObject var store: BikeStore

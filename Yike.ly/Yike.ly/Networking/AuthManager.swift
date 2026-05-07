@@ -1,3 +1,10 @@
+//
+//    Validates @eckerd.edu addresses and resolves
+//    user role (admin vs. student). Currently uses
+//    a local admin email list; structured to swap
+//    in a server-side users table when available.
+//
+
 import Foundation
 
 // MARK: - Auth Errors

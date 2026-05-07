@@ -1,3 +1,10 @@
+//
+//    All HTTP communication with the PHP backend.
+//    Fetches full bike list, submits issue reports,
+//    and updates bike state. Defines BikeDTO matching
+//    the server JSON response exactly.
+//
+
 import Foundation
 
 // MARK: - Server Configuration

@@ -1,3 +1,10 @@
+//
+//    Central state manager. Fetches all bike data
+//    from the server on launch, polls for coordinate
+//    updates every 30 seconds, and handles all user
+//    and admin actions (report, repair, hide).
+//
+
 import Foundation
 import Combine
 internal import _LocationEssentials

@@ -1,3 +1,9 @@
+//
+//    Custom map pin icons. Yellow for available,
+//    red with pulsing ring for broken, gray dashed
+//    for in-shop (admin only).
+//
+
 import SwiftUI
 
 /// The icon that appears on the map for each bike.

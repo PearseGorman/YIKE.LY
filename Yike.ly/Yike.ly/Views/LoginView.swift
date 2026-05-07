@@ -1,3 +1,10 @@
+//
+//    First-launch email entry screen. Validates
+//    @eckerd.edu suffix and resolves user role
+//    before granting map access. No real database
+//    connection.
+//
+
 import SwiftUI
 
 struct LoginView: View {

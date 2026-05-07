@@ -1,3 +1,7 @@
+//
+//    Root view. Routes between LoginView and MapView
+//    based on session state.
+//
 import SwiftUI
 
 struct ContentView: View {

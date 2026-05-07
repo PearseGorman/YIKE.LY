@@ -1,3 +1,8 @@
+
+//    Stores logged-in email and role. Persists to
+//    UserDefaults so users aren't re-prompted on
+//    every launch. Handles logout.
+
 import Foundation
 import Combine
 

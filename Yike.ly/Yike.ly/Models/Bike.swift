@@ -1,8 +1,15 @@
+//  Bike data model, BikeState enum (available/
+//  needsRepair/hidden), and convenience initializer
+//  from server DTO. Simulated fallback data included
+//  for offline development.
+
+
 import Foundation
 import CoreLocation
 import Combine
 
 // MARK: - Bike State
+// Three states available for a bike to be, with GUI change reflecting their state
 enum BikeState: String, CaseIterable {
     case available   // Yellow  - functional, ready to ride
     case needsRepair // Red     - reported broken, needs Bike Shop attention
@@ -10,6 +17,7 @@ enum BikeState: String, CaseIterable {
 }
 
 // MARK: - Reported Issue
+// Issues users can when reporting a bike for maitence
 enum BikeIssue: String, CaseIterable, Identifiable {
     case missingChain   = "Chain missing or broken"
     case brokenPedals   = "Broken pedals"
@@ -70,7 +78,7 @@ extension Bike {
 
 // MARK: - Simulated Campus Bike Data
 // Coordinates are approximate locations around Eckerd College, St. Petersburg, FL
-// Replace with real GPS data once your MariaDB + tracker pipeline is live.
+// Initial values for bike locations, which are the same as the dummy database values we tested with.
 extension Bike {
     static let simulatedBikes: [Bike] = [
         Bike(id: "YK-01", name: "Yike #1",  state: .available,   latitude: 27.7299, longitude: -82.7143),

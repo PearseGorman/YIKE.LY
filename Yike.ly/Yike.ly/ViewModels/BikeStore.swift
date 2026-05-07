@@ -9,8 +9,6 @@ import Foundation
 import Combine
 internal import _LocationEssentials
 
-
-
 class BikeStore: ObservableObject {
     @Published var bikes: [Bike] = []
     @Published var isAdminMode: Bool = false
@@ -18,7 +16,7 @@ class BikeStore: ObservableObject {
     @Published var errorMessage: String? = nil
 
     static let useRealAPI = true
-    static let pollInterval: TimeInterval = 30
+    static let pollInterval: TimeInterval = 30      // 30 second fetch
 
     private var pollTask: Task<Void, Never>? = nil
 

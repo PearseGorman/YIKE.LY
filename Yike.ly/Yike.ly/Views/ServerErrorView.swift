@@ -1,4 +1,7 @@
-
+//
+//    Displayed when the server is unreachable.
+//    Shows an error message and a retry button.
+//
 
 
 import SwiftUI

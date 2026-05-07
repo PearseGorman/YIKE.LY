@@ -1,3 +1,10 @@
+//
+//    Bike Shop admin panel. Shows fleet summary,
+//    per-bike state controls (repair, hide, return),
+//    signed-in user info, and sign out. Admin mode
+//    is locked on for Bike Shop staff.
+//
+
 import SwiftUI
 
 struct AdminView: View {

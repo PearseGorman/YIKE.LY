@@ -1,8 +1,9 @@
+//
 //  Bike data model, BikeState enum (available/
 //  needsRepair/hidden), and convenience initializer
 //  from server DTO. Simulated fallback data included
 //  for offline development.
-
+//
 
 import Foundation
 import CoreLocation
